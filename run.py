@@ -1,74 +1,24 @@
 import time
 import random
 import os
+import sys
 
-# အရောင်သတ်မှတ်ချက်များ
+# အရောင်များ
+RED = '\033[91m'
 GREEN = '\033[92m'
+YELLOW = '\033[93m'
 CYAN = '\033[96m'
 WHITE = '\033[97m'
-YELLOW = '\033[93m'
 END = '\033[0m'
+
+def slow_print(text, delay=0.5):
+    """စာသားများကို တစ်ကြောင်းချင်းစီ ဖြည်းဖြည်းချင်း ဖော်ပြရန်"""
+    print(text)
+    sys.stdout.flush()
+    time.sleep(delay)
 
 def clear_screen():
     os.system('clear')
-
-def show_loading():
-    print(f"{CYAN}Loading...{END}")
-    time.sleep(1)
-    clear_screen()
-
-def check_internet():
-    clear_screen()
-    print(f"{GREEN}[1] Checking connectivity...{END}")
-    time.sleep(1)
-    print(f"{WHITE}[!] Checking Starlink Status...{END}")
-    time.sleep(1)
-    print(f"{WHITE}[+] Done.{END}")
-    time.sleep(1)
-    print(f"{WHITE}[+] Connection to Starlink API Successful.{END}")
-    time.sleep(1)
-    
-    # Ping status နမူနာပြသရန်
-    print(f"\n{CYAN}[*] Live Ping Status:{END}")
-    for i in range(3):
-        ping = random.randint(50, 100)
-        print(f"{WHITE}Ping: {ping} ms | Status: {GREEN}Stable{WHITE}{END}")
-        time.sleep(1)
-
-def brute_force():
-    clear_screen()
-    print(f"{GREEN}[2] Brute-forcing Voucher Codes...{END}")
-    time.sleep(1)
-    print(f"{WHITE}[!] Preparing Threads...{END}")
-    time.sleep(1)
-    print(f"{WHITE}[*] Checking user key approval...{END}")
-    time.sleep(1)
-    print(f"{YELLOW}[!] This action will take a few minutes...{END}")
-    time.sleep(1)
-    
-    # စတင်စမ်းသပ်တဲ့စာသား
-    print(f"{WHITE}[+] 1-Trying to connect server...{END}")
-    time.sleep(1)
-    
-    # Brute-force စတင်ခြင်း
-    print(f"{CYAN}\n[>] Scanning...{END}")
-    for i in range(10):
-        code = "".join([str(random.randint(0, 9)) for _ in range(6)])
-        if i == 5: # success code နမူနာ
-            print(f"{GREEN}Success Code: {code}{END}")
-        else:
-            print(f"Fail Code: {code}")
-        time.sleep(0.5)
-
-def recheck_codes():
-    clear_screen()
-    print(f"{GREEN}[3] Rechecking Saved Codes...{END}")
-    time.sleep(1)
-    print(f"{WHITE}[!] Accessing Database...{END}")
-    time.sleep(1)
-    print(f"{WHITE}[+] Found 1 Active Code.{END}")
-    time.sleep(1)
-    print(f"\n{CYAN}Status check complete.{END}")
 
 def show_menu():
     clear_screen()
@@ -82,20 +32,32 @@ def show_menu():
     choice = input(f"{CYAN}Enter an Option: {END}")
     
     if choice == '1':
-        check_internet()
+        clear_screen()
+        slow_print(f"{GREEN}[+] Checking Bypass...{END}")
+        slow_print(f"{WHITE}[+] Done.{END}")
+        slow_print(f"{WHITE}[+] Checking user key approval...{END}")
+        slow_print(f"{YELLOW}[!] This action will take a few minutes...{END}")
+        slow_print(f"{WHITE}[+] 1-Trying to connect server...{END}")
+        # ရှေ့ကပုံထဲကလို Log ပုံစံပြရန်
+        for _ in range(3):
+            t = time.strftime("%H-%M-%S")
+            p = random.randint(50, 70)
+            slow_print(f"Log: {{time: {t}, status: 200, ping: {GREEN}{p}{WHITE}, IsInternetAccess: {GREEN}True{WHITE}}}")
+            
     elif choice == '2':
-        brute_force()
-    elif choice == '3':
-        recheck_codes()
+        clear_screen()
+        slow_print(f"{CYAN}[+] Starting...{END}")
+        slow_print(f"{YELLOW}[!] If you are getting stuck, turn on/off your wifi{END}")
+        # ပုံထဲကလိုမျိုး အနီရောင် Fail Code များပြရန်
+        for _ in range(10):
+            code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+            slow_print(f"{RED}Fail Code: {code}{END}", delay=0.2)
+            
     elif choice == '0':
         exit()
-    else:
-        print(f"{RED}[!] Invalid Option!{END}")
-        time.sleep(1)
     
     input(f"\n{YELLOW}Press Enter to return to Menu...{END}")
     show_menu()
 
 if __name__ == "__main__":
-    show_loading()
     show_menu()
