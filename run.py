@@ -25,7 +25,7 @@ def show_menu():
 def start_scanning():
     os.system('clear')
     
-    # ဗီဒီယိုထဲကအတိုင်း တစ်ဆင့်ချင်း စာတန်းတက်လာစေရန်
+    # ပုံ ထဲကအတိုင်း တစ်ဆင့်ချင်း စာတန်းတက်လာစေရန်
     print(f"{CYAN}[+] Checking Bypass...{END}")
     time.sleep(0.5)
     print(f"{CYAN}[+] Done.{END}")
@@ -68,7 +68,7 @@ def start_scanning():
             # Server Timeout သို့မဟုတ် ချိတ်ဆက်မှုမရလျှင် အနီရောင်ဖြင့်ပြမည်
             print(f"{RED}Error: {code} (Server Timeout){END}")
         
-        # Scanner အမြန်နှုန်း (လိုသလို ညှိနိုင်သည်)
+        # Scanner အမြန်နှုန်း
         time.sleep(0.05)
 
 if __name__ == "__main__":
